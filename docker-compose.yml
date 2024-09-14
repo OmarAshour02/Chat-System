@@ -1,0 +1,56 @@
+version: '3'
+services:
+  db:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: chat_app
+    volumes:
+      - ./tmp/db:/var/lib/mysql
+    user: root
+
+
+  redis:
+    image: redis
+    command: redis-server
+    ports:
+      - "6379:6379"
+  
+  web:
+    build: .
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
+    volumes:
+      - .:/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+      - redis
+    environment:
+      REDIS_URL: "redis://redis:6379/"
+      DATABASE_URL: "mysql2://root:rootpassword@db:3306/chat_app"
+      RAILS_ENV: "production"
+      SECRET_KEY_BASE: "a2e0a53c58b46f9c5c42eb91318fd0eaa1224d9f207b3a7162653f86f2c135417674a5ab4813f619ce8157f3457f3cfb953ae3cf5d6a1a0ba97100ce89d50deb"
+
+  sidekiq:
+    build: .
+    command: bundle exec sidekiq
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    environment:
+      REDIS_URL: "redis://redis:6379/"
+      DATABASE_URL: "mysql2://root:rootpassword@db:3306/chat_app"
+      RAILS_ENV: "production"
+      SECRET_KEY_BASE: "a2e0a53c58b46f9c5c42eb91318fd0eaa1224d9f207b3a7162653f86f2c135417674a5ab4813f619ce8157f3457f3cfb953ae3cf5d6a1a0ba97100ce89d50deb"
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.14.0
+    environment:
+      - discovery.type=single-node
+    ports:
+      - "9201:9200"

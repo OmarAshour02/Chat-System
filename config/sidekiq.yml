@@ -1,0 +1,6 @@
+:scheduler:
+  :schedule:
+    my_worker:
+      cron: "0 * * * *"   
+      class: SyncCountersJob
+      queue: default
