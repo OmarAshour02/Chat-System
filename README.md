@@ -1,111 +1,89 @@
 # Instabug Chat API
 
-This is a Rails-based API for managing chat applications, chats, and messages. It uses Docker for easy setup and deployment.
+This is a **Rails-based API** for managing chat applications, chats, and messages. The project leverages **Docker** for easy setup and deployment. It includes:
 
-- The application uses MySQL for the database and Redis for background job processing.
-- Sidekiq is used for handling background jobs.
-- Elasticsearch is set up for full-text search capabilities.
+- **MySQL** as the database.
+- **Redis** as queuing system.
+- **Sidekiq** for handling background jobs.
+- **Elasticsearch** for full-text search.
 
+---
+![](db.svg)
+## Models Overview
 
-# Models
-![Alt text](db.svg)
+The system revolves around three main entities: **Applications**, **Chats**, and **Messages**. Their relationships are as follows:
 
-The chat system consists of three main entities: Applications, Chats, and Messages. Let's break down their relationships:
+### Applications to Chats (One-to-Many)
+- One Application can have many Chats.
+- This is represented by the foreign key `application_id` in the `chats` table.
+- The `NOT NULL` constraint ensures each chat belongs to an application.
 
-- Applications to Chats (One-to-Many):
+### Chats to Messages (One-to-Many)
+- One Chat can have many Messages.
+- This is represented by the foreign key `chat_id` in the `messages` table.
+- The `NOT NULL` constraint ensures each message belongs to a chat.
 
-One Application can have many Chats.
-This is represented by the foreign key application_id in the chats table.
-The not null constraint ensures that every chat must belong to an application.
+### Unique Constraints
+- In the `chats` table: `(application_id, number) [unique]`
+  - Ensures that chat numbers are unique within each application (e.g., App1 can have Chat1, Chat2; App2 can have Chat1, Chat2).
+- In the `messages` table: `(chat_id, number) [unique]`
+  - Ensures message numbers are unique within each chat (e.g., Chat1 can have Message1, Message2; Chat2 can have Message1, Message2).
 
+### Implicit Relations
+While there's no direct relationship between **Applications** and **Messages** in the schema, an implicit relationship exists through **Chats**. A message can be traced to its application via its chat.
 
-- Chats to Messages (One-to-Many):
+### Counts and Integrity
+- The `applications` table has a `chats_count` field to quickly retrieve the number of chats for an application.
+- The `chats` table has a `messages_count` field to count messages for a chat.
+- These counts are managed to ensure consistency with the actual number of related records.
 
-One Chat can have many Messages.
-This is represented by the foreign key chat_id in the messages table.
-The not null constraint ensures that every message must belong to a chat.
+### Hierarchical Structure
+The system follows this hierarchy:
+**Applications > Chats > Messages**
 
+This structure allows efficient querying, such as fetching all chats for an application or all messages in a chat.
 
-- Unique Constraints:
+---
 
-In the chats table: (application_id, number) [unique]
-This ensures that chat numbers are unique within each application. For example, App1 can have Chat1, Chat2, Chat3, and App2 can also have Chat1, Chat2, Chat3.
-In the messages table: (chat_id, number) [unique]
-This ensures that message numbers are unique within each chat. For example, Chat1 can have Message1, Message2, Message3, and Chat2 can also have Message1, Message2, Message3.
+## Database Indexes
 
+### Applications Table
+- `index_applications_on_token`: Single-column index on `token`
+  - Purpose: Quick application lookup by token.
 
-- Implicit Relations:
+### Chats Table
+- `index_chats_on_application_id`: Single-column index on `application_id`
+  - Purpose: Efficient queries for chats within an application.
+- `index_chats_on_number_and_application_id`: Composite index on `number` and `application_id`
+  - Purpose: Fast lookup of specific chats by number within an application.
 
-While there's no direct relationship between Applications and Messages in the database schema, there's an implicit relationship through Chats. You can trace a message to its application via its chat.
+### Messages Table
+- `index_messages_on_chat_id`: Single-column index on `chat_id`
+  - Purpose: Efficient queries for messages within a chat.
+- `index_messages_on_number_and_chat_id`: Composite index on `number` and `chat_id`
+  - Purpose: Quick retrieval of specific messages by number within a chat.
 
-
-- Counts and Integrity:
-
-The applications table has a chats_count field, likely used to quickly retrieve the number of chats for an application without having to count them each time.
-Similarly, the chats table has a messages_count field.
-These counts would need to be managed at the application level to ensure they stay in sync with the actual number of related records.
-
-
-- Hierarchical Structure:
-
-The relations form a hierarchical structure: Applications > Chats > Messages
-This allows for efficient querying and organization of data. For example, you can easily fetch all chats for an application or all messages in a chat.
-
-
-
-# Database Indexes 
-Indexes (based on B-trees) to speed up db transactions
-
-
-
-- Applications Table
-
-index_applications_on_token: Single-column index on token
-
-Purpose: Quick application lookup by token
-
-
-
-- Chats Table
-
-index_chats_on_application_id: Single-column index on application_id
-
-Purpose: Efficient queries for chats within an application
-
-
-index_chats_on_number_and_application_id: Composite index on number and application_id
-
-Purpose: Fast lookup of specific chats by number within an application
-
-
-
-- Messages Table
-
-index_messages_on_chat_id: Single-column index on chat_id
-
-Purpose: Efficient queries for messages within a chat
-
-
-index_messages_on_number_and_chat_id: Composite index on number and chat_id
-
-Purpose: Quick retrieval of specific messages by number within a chat
-
-
-
+---
 
 ## Continuous Integration and Deployment (CI/CD)
-We use GitHub Actions for our CI/CD pipeline. The workflow automates the following processes:
 
-Docker bootstrapping: Sets up the Docker environment for testing.
-End-to-End testing: Runs the Python e2e_tests.py script to ensure all API endpoints are functioning correctly.
+We use **GitHub Actions** for our CI/CD pipeline. The workflow automates the following processes:
 
-The CI/CD pipeline is triggered on every push to the main branch and for all pull requests. This ensures that any changes to the codebase are automatically tested before being merged or deployed.
-To view the current status of the CI/CD pipeline, check the Actions tab in the GitHub repository
+- **Docker bootstrapping**: Sets up the Docker environment for testing.
+- **End-to-End testing**: Runs the `Python e2e_tests.py` script to ensure all API endpoints are functioning correctly.
+
+The CI/CD pipeline is triggered on every push to the `main` branch and for all pull requests. This ensures that any changes to the codebase are automatically tested before being merged or deployed.
+
+---
 
 ## Prerequisites
 
-- Docker
-- Docker Compose
+- **Docker**
+- **Docker Compose**
+
+---
+
+
 
 ## Setting Up the Application
 
