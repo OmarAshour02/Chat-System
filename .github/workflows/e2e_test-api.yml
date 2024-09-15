@@ -26,8 +26,12 @@ jobs:
 
     - name: Build and run Docker container
       run: |
-        docker-compose up -d #
- 
+        docker-compose up -d
+        
+    - name: Wait for MySQL to be ready
+      run: |
+        docker-compose exec -T web bash -c 'while !</dev/tcp/db/3306; do sleep 1; done'
+
     - name: Run database migrations
       run: |
         docker-compose run web /rails/bin/rails db:create db:migrate
