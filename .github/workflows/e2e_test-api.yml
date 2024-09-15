@@ -30,7 +30,7 @@ jobs:
  
     - name: Run database migrations
       run: |
-      docker-compose run web /rails/bin/rails db:create db:migrate
+        docker-compose run web /rails/bin/rails db:create db:migrate
 
     - name: Set up Python
       uses: actions/setup-python@v4
