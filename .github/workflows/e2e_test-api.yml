@@ -27,7 +27,7 @@ jobs:
     - name: Build and run Docker container
       run: |
         docker-compose up -d #
-
+ 
     - name: Run database migrations
       run: |
       docker-compose run web /rails/bin/rails db:create db:migrate
