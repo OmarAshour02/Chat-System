@@ -2,6 +2,11 @@ module Api
     module V1
       class ApplicationsController < ApplicationController
         
+        def index
+          @applications = Application.all
+          render json: @applications.as_json(only: [:token, :name, :chats_count])
+        end
+  
         def create
           @application = Application.new(application_params)
           if @application.save
