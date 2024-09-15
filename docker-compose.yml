@@ -11,7 +11,6 @@ services:
       - ./tmp/db:/var/lib/mysql
     user: root
 
-
   redis:
     image: redis
     command: redis-server
@@ -28,9 +27,11 @@ services:
     depends_on:
       - db
       - redis
+      - elasticsearch
     environment:
       REDIS_URL: "redis://redis:6379/"
       DATABASE_URL: "mysql2://root:rootpassword@db:3306/chat_app"
+      ELASTICSEARCH_URL: "http://elasticsearch:9200"
       RAILS_ENV: "production"
       SECRET_KEY_BASE: "a2e0a53c58b46f9c5c42eb91318fd0eaa1224d9f207b3a7162653f86f2c135417674a5ab4813f619ce8157f3457f3cfb953ae3cf5d6a1a0ba97100ce89d50deb"
 
@@ -45,6 +46,7 @@ services:
     environment:
       REDIS_URL: "redis://redis:6379/"
       DATABASE_URL: "mysql2://root:rootpassword@db:3306/chat_app"
+      ELASTICSEARCH_URL: "http://elasticsearch:9200"
       RAILS_ENV: "production"
       SECRET_KEY_BASE: "a2e0a53c58b46f9c5c42eb91318fd0eaa1224d9f207b3a7162653f86f2c135417674a5ab4813f619ce8157f3457f3cfb953ae3cf5d6a1a0ba97100ce89d50deb"
 
@@ -53,4 +55,13 @@ services:
     environment:
       - discovery.type=single-node
     ports:
-      - "9201:9200"
+      - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+
+volumes:
+  esdata: {} 
+
+networks:
+  default:
+    driver: bridge
