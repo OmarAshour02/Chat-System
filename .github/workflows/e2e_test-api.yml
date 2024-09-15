@@ -26,12 +26,11 @@ jobs:
 
     - name: Build and run Docker container
       run: |
-        docker-compose up -d # or use docker build and run commands if not using docker-compose
+        docker-compose up -d #
 
     - name: Run database migrations
       run: |
-        docker-compose exec -T app bundle exec rake db:migrate
-
+      docker-compose run web /rails/bin/rails db:create db:migrate
 
     - name: Set up Python
       uses: actions/setup-python@v4
