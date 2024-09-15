@@ -35,6 +35,7 @@ def create_application(name: str) -> Dict:
     response = requests.post(f"{BASE_URL}/applications", json={"application": {"name": name}})
     response.raise_for_status()
     logger.info(f"Created application: {response.json()}")
+    time.sleep(1)
     return response.json()
 
 def create_chat(app_token: str) -> Dict:
