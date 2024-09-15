@@ -26,7 +26,15 @@ jobs:
 
     - name: Build and run Docker container
       run: |
-        docker-compose up -d # or use docker build and run commands if not using docker-compose
+        docker-compose up -d
+        
+    - name: Wait for MySQL to be ready
+      run: |
+        docker-compose exec -T web bash -c 'while !</dev/tcp/db/3306; do sleep 1; done'
+
+    - name: Run database migrations
+      run: |
+        docker-compose run web /rails/bin/rails db:create db:migrate
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -37,6 +45,11 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt 
+
+    - name: Check if server is up
+
+      run: |
+        curl -s http://localhost:3000/api/v1/applications || exit 1
 
     - name: Run tests
       run: |
