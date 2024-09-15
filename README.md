@@ -42,7 +42,10 @@ This is a Rails-based API for managing chat applications, chats, and messages. I
   ```
   POST /api/v1/applications
   ```
-
+- List all applications:
+  ```
+  GET /api/v1/applications
+  ```
 - Get application details:
   ```
   GET /api/v1/applications/:token
@@ -52,7 +55,6 @@ This is a Rails-based API for managing chat applications, chats, and messages. I
   ```
   PUT /api/v1/applications/:token
   ```
-
 ### Chats
 
 - Create a new chat:
